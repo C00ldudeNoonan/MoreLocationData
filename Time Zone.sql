@@ -1,57 +1,58 @@
 USE General
 
---SELECT  * from dbo.worldcities
---Go
+SELECT  * from dbo.worldcities
+Go
 
 -- adding id field to avoid duplicates. Same city name in mulitple countries
---ALTER TABLE dbo.worldcities
---ADD CityID int primary key IDENTITY(1,1) NOT NULL
---ALTER TABLE dbo.worldcities
---DROP COLUMN Id; 
---GO
+ALTER TABLE dbo.worldcities
+ADD CityID int primary key IDENTITY(1,1) NOT NULL
+ALTER TABLE dbo.worldcities
+DROP COLUMN Id; 
+GO
 
 
  --creating time zone stage table
---IF OBJECT_ID('dbo.CityTimeZoneStage') is not null
---DROP TABLE dbo.CityTimeZoneStage 
---GO
+IF OBJECT_ID('dbo.CityTimeZoneStage') is not null
+DROP TABLE dbo.CityTimeZoneStage 
+GO
 
---CREATE TABLE dbo.CityTimeZoneStage (
---	CityID Int NOT NULL,
---	CityName Varchar(225),
---	TimeZone Varchar(40)
-
---)
---GO
+CREATE TABLE dbo.CityTimeZoneStage (
+	CityID Int NOT NULL,
+	CityName Varchar(225),
+	TimeZone Varchar(40)
+)
+GO
 
 -- query to populate work queue
---SELECT
---worldcities.CityID,
---city_ascii AS CityName,
---Lat,
---Lng
---FROM dbo.worldcities
---LEFT JOIN dbo.CityTimeZoneStage
---	on CityTimeZoneStage.CityID = worldcities.CityID
---WHERE CityTimeZoneStage.CityID is null
---Go
+SELECT
+worldcities.CityID,
+city_ascii AS CityName,
+Lat,
+Lng
+FROM dbo.worldcities
+LEFT JOIN dbo.CityTimeZoneStage
+	on CityTimeZoneStage.CityID = worldcities.CityID
+WHERE CityTimeZoneStage.CityID is null
+Go
 ---- results of python process
---SELECT * FROM CityTimeZoneStage
+SELECT * FROM CityTimeZoneStage
 
 -- time zone table loaded in
 -- updating time zone table for float for the offset
---UPDATE TimeZones
---Set Offset =
----- converting to float for the offset
---CASE WHEN Offset like '%:45%' then Replace(Replace(Offset,'UTC' ,''),':45', '.75') 
---	WHEN  Offset like '%:30%' then Replace(Replace(Offset,'UTC' ,''),':30', '.5') 
---	WHEN  Offset like '%:00%' then Replace(Replace(Offset,'UTC' ,''),':00', '.0') 
---	ELSE  Replace(Offset,'UTC' ,'') END
---ALTER TABLE TimeZones
---Add TimeZoneID int primary key IDENTITY(1,1) NOT NULL
+UPDATE TimeZones
+Set Offset =
+--- converting to float for the offset
+CASE WHEN Offset like '%:45%' then Replace(Replace(Offset,'UTC' ,''),':45', '.75') 
+	WHEN  Offset like '%:30%' then Replace(Replace(Offset,'UTC' ,''),':30', '.5') 
+	WHEN  Offset like '%:00%' then Replace(Replace(Offset,'UTC' ,''),':00', '.0') 
+	ELSE  Replace(Offset,'UTC' ,'') END
 
---ALTER TABLE TimeZones
---ALTER COLUMN Offset float;
+
+ALTER TABLE TimeZones
+Add TimeZoneID int primary key IDENTITY(1,1) NOT NULL
+
+ALTER TABLE TimeZones
+ALTER COLUMN Offset float;
 
 SELECT * FROM TimeZones
 ORDER BY Time_zone_name DESC
@@ -60,13 +61,13 @@ ORDER BY Time_zone_name DESC
 
 --Distinct Time zones and lookup
 
---ALTER TABLE worldcities
---ADD TimezoneID int
+ALTER TABLE worldcities
+ADD TimezoneID int
 
 ---- Adding Foreign key constraint
---ALTER TABLE worldcities
---ADD CONSTRAINT FK_TimeZoneCity
---FOREIGN KEY (TimezoneId) REFERENCES TimeZones(TimezoneId); 
+ALTER TABLE worldcities
+ADD CONSTRAINT FK_TimeZoneCity
+FOREIGN KEY (TimezoneId) REFERENCES TimeZones(TimezoneId); 
 
 
 --Duplicate abbreviations

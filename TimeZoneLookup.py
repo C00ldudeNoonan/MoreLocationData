@@ -2,7 +2,6 @@
 import pyodbc
 import pandas as pd
 import time 
-import selenium
 import requests
 
 conn = pyodbc.connect('Driver=SQL Server;Server=;Database=General;Trusted_Connection=yes;')

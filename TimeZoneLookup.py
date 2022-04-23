@@ -1,4 +1,5 @@
 
+
 import pyodbc
 import pandas as pd
 import time 
@@ -8,14 +9,14 @@ conn = pyodbc.connect('Driver=SQL Server;Server=;Database=General;Trusted_Connec
 
 # select top 10 for testing process
 df = pd.read_sql_query('SELECT \
-                            worldcities.CityID,\
-                            city_ascii AS CityName,\
-                            Lat,\
-                            Lng\
+                            worldcities.WorldCitiesID,\
+                            CityName_ASCII AS CityName,\
+                            ROUND(Latitude,2) as Latitude,\
+                            ROUND(Longitude,2) as Longitude\
                         FROM dbo.worldcities\
                         LEFT JOIN dbo.CityTimeZoneStage\
-	                        on CityTimeZoneStage.CityID = worldcities.CityID\
-                        WHERE CityTimeZoneStage.CityID is null', conn)
+	                        on CityTimeZoneStage.WorldCitiesID = worldcities.WorldCitiesid\
+                        WHERE CityTimeZoneStage.WorldCitiesID is null', conn)
 # need to read in query from sql server for city name, latitude and longitude
 conn.close()
 
@@ -25,7 +26,7 @@ conn.close()
 # not fastest way to iterate but its conceptually easy
 # 1 request per second from api slows it down anyway
 
-key = "Your Key"
+key = ""
 
 # timezones = []
 for index, row in df.iterrows():
@@ -34,23 +35,24 @@ for index, row in df.iterrows():
     # print(row['Lng'])
     # print(row['CityName'])
     # this api request returns a JSON object
-    r = requests.get("http://api.timezonedb.com/v2.1/get-time-zone?key="+key+"&format=json&by=position&lat="+str(row['Lat'])+"&lng="+str(row['Lng'])).json()
+    r = requests.get("http://api.timezonedb.com/v2.1/get-time-zone?key="+key+"&format=json&by=position&lat="+str(row['Latitude'])+"&lng="+str(row['Longitude'])).json()
     
     # inspecting JSON Object
     # print(r)
     
     # appeding pairs to list
     #timezones.append([row['CityName'], r['abbreviation']])
-    # wait 3 seconds
+
     conn = pyodbc.connect('Driver=SQL Server;Server=;Database=General;Trusted_Connection=yes;')
 
     # inserting into SQL Staging table
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO dbo.CityTimeZoneStage (CityID, CityName,TimeZone) values(?,?,?)",row['CityID'], row['CityName'], r['abbreviation'])
+    cursor.execute("INSERT INTO dbo.CityTimeZoneStage (WorldCitiesID, CityName,TimeZone) values(?,?,?)",row['WorldCitiesID'], row['CityName'], r['abbreviation'])
     conn.commit()
     cursor.close()
 
-    time.sleep(2)
+    # wait 3 seconds
+    time.sleep(3)
     
 # to see what list looks like
 # print(timezones)

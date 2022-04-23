@@ -3,7 +3,7 @@ USE General
 SELECT  * from dbo.worldcities
 Go
 
--- adding id field to avoid duplicates. Same city name in mulitple countries
+-- adding id field to avoid duplicates. To address Same city name in mulitple countries
 ALTER TABLE dbo.worldcities
 ADD CityID int primary key IDENTITY(1,1) NOT NULL
 ALTER TABLE dbo.worldcities
@@ -17,7 +17,7 @@ DROP TABLE dbo.CityTimeZoneStage
 GO
 
 CREATE TABLE dbo.CityTimeZoneStage (
-	CityID Int NOT NULL,
+	WorldCitiesID Int NOT NULL,
 	CityName Varchar(225),
 	TimeZone Varchar(40)
 )
@@ -25,19 +25,22 @@ GO
 
 -- query to populate work queue
 SELECT
-worldcities.CityID,
-city_ascii AS CityName,
-Lat,
-Lng
+	worldcities.WorldCitiesID,
+	CityName_ASCII AS CityName,
+	ROUND(Latitude,2) as Latitude,
+	ROUND(Longitude,2) as Longitude
 FROM dbo.worldcities
 LEFT JOIN dbo.CityTimeZoneStage
-	on CityTimeZoneStage.CityID = worldcities.CityID
-WHERE CityTimeZoneStage.CityID is null
+	on CityTimeZoneStage.WorldCitiesID = worldcities.WorldCitiesid
+WHERE CityTimeZoneStage.WorldCitiesID is null
 Go
 ---- results of python process
 SELECT * FROM CityTimeZoneStage
 
+
 -- time zone table loaded in
+
+
 -- updating time zone table for float for the offset
 UPDATE TimeZones
 Set Offset =
@@ -64,10 +67,6 @@ ORDER BY Time_zone_name DESC
 ALTER TABLE worldcities
 ADD TimezoneID int
 
----- Adding Foreign key constraint
-ALTER TABLE worldcities
-ADD CONSTRAINT FK_TimeZoneCity
-FOREIGN KEY (TimezoneId) REFERENCES TimeZones(TimezoneId); 
 
 
 --Duplicate abbreviations
@@ -254,6 +253,9 @@ GO
 DROP TABLE #TempUpdate
 GO
 
+
+-- Load ZipCode Table in
+
 -- add id column
 ALTER TABLE dbo.ZipCode
 ADD ZipID int primary key IDENTITY(1,1) NOT NULL
@@ -262,7 +264,7 @@ ADD ZipID int primary key IDENTITY(1,1) NOT NULL
 ALTER TABLE ZipCode
 ADD TimezoneID int
 
-
+-- Duplicate Timezone State check
 SELECT 
 ZipCode.state,
 COUNT(DISTINCT Timezone)
@@ -358,3 +360,4 @@ ALTER TABLE worldcities
 ADD CONSTRAINT FK_worldcitiesCountries
 FOREIGN KEY (CountryId) REFERENCES Countries(CountryId); 
 GO 
+
